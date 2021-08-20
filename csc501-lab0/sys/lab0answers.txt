@@ -1,0 +1,30 @@
+1. From printprocstks, we have the main process base pointer, stack pointer, limit, and size.
+
+_______base_______ 0x00ffeff8
+[main function]  size of 4096
+_____pointer______ 0x00ffefa0
+______limit_______ 0x00ffdffc
+      heap                  Below addresses were found from printsegaddress's current addresses
+_____end(ebss)____ 0x00026bb8
+      BSS
+_______edata______ 0x0001e53d
+      Data
+_______etext______ 0x0001923d
+      Text
+______start_______ 0x00000000
+
+
+2. The difference in the stack top address before and after calling printtos() is 8. Memory addresses increment by 0x00000004, so the difference of 0x00000008 means there are
+two items pushed onto the stack. These two items are the base pointer (ebp) and the return address of the main function. Sketch below:
+    0x00ffefec    <- Address pointed to after printtos()
+|________________|
+|base pointer ebp|
+|________________|
+| return address |
+|________________|
+    0x00ffeff4    <- Address pointed to before printtos()
+
+
+3. Yes, I have 3  variables. I have the base pointer ebp, stack pointer esp, and a local iterator int i.
+The printtos function call displays 3 elements in the current process, which should be the 2 pointers and
+the local variable i.

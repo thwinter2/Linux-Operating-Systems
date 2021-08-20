@@ -1,0 +1,15 @@
+1.  The advantage of the default round-robin scheduler is that the highest priority process will always run when it is available to run, which can be beneficial for applications where certain tasks need to happen
+  every time it is able to be run. This disadvantage of this, however, is that the lowest priority process may face starvation since it is the least likely to be scheduled. If at some point the lowest priority process
+  does need to run, but can't because other higher priority tasks are in the queue, the process will face starvation.
+  The advantage of the Exponential Scheduler is that the likelihood of a process being scheduled is proportional to the CPU runtime of the process, so it is easy to calculate the expected distribution of
+  process calls by the scheduler since they will follow the exponential curve of process calls vs. priority. Another advantage is the randomness of the scheduler, so the priorities of the processes change and
+  starvation is more likely to be avoided. The disadvantage of the Exponential Scheduler is that if the random value is low, the process with the lowest priority is low, so the highest priority task will not run.
+  Based on the Exponential Graph in the project description, it looks like the lower priority processes are run more often than higher priority processes.
+  The advantage of the Linux Scheduler is that starvation is highly unlikely due to the goodness value criteria. If a process has not been run in awhile, it is more likely to be run next because it is likely to
+  have a higher goodness value, which is what the Scheduler uses to determine which process to run. Another advantage is that priority is taken into account into the goodness value, so the first round of scheduling is
+  based on the set priorities. A disadvantage of the Linux Scheduler is that the CPU runtime can change between epochs and the priorities of processes my carryover to be larger in other epochs; this means that
+  it is difficult to determine the runtime of any arbitrary epoch and how the processes are arranged in terms of priority.
+
+2.  The NULL process in the default scheduler does not look like it gets scheduled. The NULL process is never queued or dequeued in the resched.c file.
+  The NULL process in the Exponential Scheduler is run if there is not another process to run in the ready queue.
+  The NULL process in the Linux Scheduler is run when there is not another process to run in the ready queue. It also runs when all other processes have exhausted their time quantum in a given epoch.

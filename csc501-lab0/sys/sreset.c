@@ -1,0 +1,51 @@
+/* sreset.c - sreset */
+
+#include <conf.h>
+#include <kernel.h>
+#include <proc.h>
+#include <q.h>
+#include <sem.h>
+#include <stdio.h>
+#include <lab0.h>
+
+/*------------------------------------------------------------------------
+ *  sreset  --  reset the count and queue of a semaphore
+ *------------------------------------------------------------------------
+ */
+SYSCALL sreset(int sem, int count)
+{
+	unsigned long syscall_start_time;
+  struct pentry *proc = &proctab[currpid];
+  extern ctr1000;
+	if(syscalls_trace == TRUE){
+		syscall_start_time = ctr1000;
+		proc->syscall_counts[22] += 1;	//increment count of syscall by 1
+	}
+
+	STATWORD ps;
+	struct	sentry	*sptr;
+	int	pid;
+	int	slist;
+
+	disable(ps);
+	if (isbadsem(sem) || count<0 || semaph[sem].sstate==SFREE) {
+		restore(ps);
+		if(syscalls_trace == TRUE){
+			proc->syscall_times[22] += (ctr1000 - syscall_start_time);
+				//add time it took for this syscall to the total time of similar syscalls
+		}
+		return(SYSERR);
+	}
+	sptr = &semaph[sem];
+	slist = sptr->sqhead;
+	while ((pid=getfirst(slist)) != EMPTY)
+		ready(pid,RESCHNO);
+	sptr->semcnt = count;
+	resched();
+	restore(ps);
+	if(syscalls_trace == TRUE){
+		proc->syscall_times[22] += (ctr1000 - syscall_start_time);
+			//add time it took for this syscall to the total time of similar syscalls
+	}
+	return(OK);
+}

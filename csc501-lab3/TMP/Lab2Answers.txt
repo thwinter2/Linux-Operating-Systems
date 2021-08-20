@@ -1,0 +1,68 @@
+1.1
+
+Priority inversion problem could be overcome using a priority ceiling protocol. In general, each resource is given a priority ceiling (equal to the largest priority among the processes that may lock the resource). The protocol suggests temporarily raising the priorities of the processes each time they want to use a given resource.  There are two different variants of the priority ceiling protocol: OCPP (Original Ceiling Priority Protocol) and ICPP (Immediate Ceiling Priority Protocol). In OCPP, a process X's priority is raised when a higher-priority process Y tries to acquire a resource that X has locked. The process's priority is then raised to the priority ceiling of the resource, ensuring that process X quickly finishes its critical section, unlocking the resource. A process is only allowed to lock a resource if its dynamic priority is higher than the priority ceilings of all resources locked by other process. Otherwise the process becomes blocked, waiting for the resource.
+In ICPP, a process's priority is immediately raised when it locks a resource. The process's priority is set to the priority ceiling of the resource, thus no process that may lock the resource is able to get scheduled. This ensures the OCPP property that "A process can only lock a resource if its dynamic priority is higher than the priority ceilings of all resources locked by other process".
+
+1.2 
+
+The testcase designed for the comparison of R/W lock implementation and Semaphore is in the file task1.c
+
+To show Priority Inversion problem with the Semaphore implementation, I have used 2 writer processes and 3 CPU-bound processes: writer1(Prio = 90), writer2(Prio = 20), cpu1(Prio = 50), cpu2(Prio = 60), cpu3(prio = 70). Firstly, writer 2 acquires the lock/sem. After that writer1 tries to acquire the lock/sem and gets blocked. Then the 3 cpu-bound processes are started.
+
+As shown in the results below, locks don't have a problem of priority inversion as the priority inheritance protocol has been implemented. Therefore, Writer2 finishes first (and releases the lock) because of its elevated priority. Then Writer1 acquires the lock and finishes. The cpu-bound processes finish in the end.
+
+However, for semaphores, the problem of priority inversion is evident. Writer1 (the highest priority process) doesn't get to run until all other lower priority processes have finished.
+
+Results
+=======
+
+***** Locks - Problem of priority inversion solved using Priority Inheritance *****
+
+-start writer 2, then sleep 1s. lock granted to writer 2 (priority =  20)
+  writer2: to acquire lock
+  writer2: acquired lock, sleep 2s
+-start writer 1. writer 1 (priority =  90) blocked on the lock
+  writer1: to acquire lock
+-start cpu1 (priority =  50)
+  cpu1: begins execution
+-start cpu2 (priority = 60)
+  cpu2: begins execution
+-start cpu3 (priority = 70)
+  cpu3: begins execution
+  writer2: writer is running again
+  writer2: to release lock
+  writer1: acquired lock
+  writer1: to release lock
+  cpu3: ends execution
+  cpu2: ends execution
+  cpu1: ends execution
+
+
+***** Semaphore - Problem of priority inversion ******
+
+-start writer 2, then sleep 1s. Sem granted to writer 2 (priority =  20)
+  writer2: to acquire sem
+  writer2: acquired sem, sleep 2s
+-start writer 1. writer 1 (priority =  90) blocked on the sem
+  writer1: to acquire sem
+-start cpu1 (priority =  50)
+  cpu1: begins execution
+-start cpu2 (priority = 60)
+  cpu2: begins execution
+-start cpu3 (priority = 70)
+  cpu3: begins execution
+  cpu3: ends execution
+  cpu2: ends execution
+  cpu1: ends execution
+  writer2: writer is running again
+  writer2: ends execution
+  writer1: acquired sem
+  writer1: to release sem
+
+
+
+2. There are two major problems assocated with the shown code:
+	a) Data can be overwritten:	 Each writer clears and writes into the buffer. So, the data gets overwritten. Consider the scenario where a reader is waiting on the lock and is interested in particular data (pid string, in this case). But, the lock is released by the corresponding writer and given to another writer which overwrites the data that the waiting reader was interested in.
+
+	b) Unbounded waiting:	There can be unbounded waiting for a writer if a very large number of readers hold the lock. There is no upper bound on the waiting times as there is no upper bound on the number of readers that can acquire the lock simultaneously.
+

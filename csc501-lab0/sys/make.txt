@@ -1,0 +1,2 @@
+zfunction.o: ../sys/zfunction.S
+	${CPP} ${SDEFS} ../sys/zfunction.S | ${AS} -o zfunction.o
